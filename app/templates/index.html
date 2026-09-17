@@ -2,10 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure DevSecOps Pipeline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Portal | Blessings University</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
 </head>
+
 <body>
-    <h1>Secure DevSecOps Test Application</h1>
-    <p>The Flask application is running successfully.</p>
+    <header class="navbar">
+        <div class="brand">Blessings University</div>
+
+        <nav>
+            <a href="{{ url_for('main.home') }}">Home</a>
+            <a href="{{ url_for('main.login') }}">Student Login</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="status">Student portal available</span>
+
+            <h1>Welcome to the Blessings University Student Portal</h1>
+
+            <p>
+                Access your academic information through one secure and
+                convenient portal. Students can review courses, check grades,
+                and manage their account information.
+            </p>
+
+            <a class="button" href="{{ url_for('main.login') }}">
+                Access Student Portal
+            </a>
+        </section>
+
+        <section class="features">
+            <article class="card">
+                <h2>View Grades</h2>
+
+                <p>
+                    Review your grades and academic results for registered
+                    courses.
+                </p>
+            </article>
+
+            <article class="card">
+                <h2>Manage Courses</h2>
+
+                <p>
+                    View course information, instructors, credit hours, and
+                    enrollment details.
+                </p>
+            </article>
+
+            <article class="card">
+                <h2>Student Profile</h2>
+
+                <p>
+                    Access your student information and maintain your account
+                    details.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        &copy; 2026 Blessings University. All rights reserved.
+    </footer>
 </body>
 </html>
