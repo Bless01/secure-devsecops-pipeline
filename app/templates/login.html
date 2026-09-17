@@ -30,10 +30,14 @@
 
             <p>
                 Enter your university account information to access your
-                courses, grades, and student profile.
+                grades and student profile.
             </p>
 
-            <form method="post">
+            <form
+                class="login-form"
+                method="POST"
+                action="{{ url_for('main.login') }}"
+            >
                 <div class="form-group">
                     <label for="username">Student ID or Email</label>
 

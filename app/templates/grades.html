@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Academic Grades | Blessings University</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="brand">Blessings University</div>
+
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.grades') }}">Grades</a>
+            <a href="{{ url_for('main.profile') }}">Profile</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="portal-container">
+        <section class="page-heading">
+            <div>
+                <span class="page-label">Academic Records</span>
+                <h1>Student Grades</h1>
+                <p>
+                    Review your current course results, credit hours and
+                    academic standing.
+                </p>
+            </div>
+
+            <div class="term-selector">
+                <span>Current semester</span>
+                <strong>Fall 2026</strong>
+            </div>
+        </section>
+
+        <section class="grade-summary">
+            <article>
+                <span>Student</span>
+                <strong>Linda Mpumulo</strong>
+            </article>
+
+            <article>
+                <span>Student ID</span>
+                <strong>BU2026001</strong>
+            </article>
+
+            <article>
+                <span>Program</span>
+                <strong>Cybersecurity</strong>
+            </article>
+
+            <article>
+                <span>Current GPA</span>
+                <strong>3.73</strong>
+            </article>
+        </section>
+
+        <section class="records-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Course results</h2>
+                    <p>Fall 2026 academic record</p>
+                </div>
+
+                <span class="record-status">Good Standing</span>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Course title</th>
+                            <th>Credits</th>
+                            <th>Score</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>CIS 693</td>
+                            <td>Cybersecurity Capstone Project</td>
+                            <td>3</td>
+                            <td>94%</td>
+                            <td><span class="grade-badge">A</span></td>
+                        </tr>
+
+                        <tr>
+                            <td>CIS 620</td>
+                            <td>Secure Software Engineering</td>
+                            <td>3</td>
+                            <td>91%</td>
+                            <td><span class="grade-badge">A-</span></td>
+                        </tr>
+
+                        <tr>
+                            <td>CIS 635</td>
+                            <td>Computer Network Security</td>
+                            <td>3</td>
+                            <td>88%</td>
+                            <td><span class="grade-badge">B+</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <a
+            class="back-link"
+            href="{{ url_for('main.dashboard') }}"
+        >
+            ← Return to Dashboard
+        </a>
+    </main>
+</body>
+</html>

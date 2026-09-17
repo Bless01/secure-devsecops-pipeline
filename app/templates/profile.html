@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Profile | Blessings University</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="brand">Blessings University</div>
+
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.grades') }}">Grades</a>
+            <a href="{{ url_for('main.profile') }}">Profile</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="portal-container">
+        <section class="page-heading">
+            <div>
+                <span class="page-label">Student Account</span>
+                <h1>Student Profile</h1>
+                <p>
+                    Review your personal information and academic program
+                    details.
+                </p>
+            </div>
+
+            <div class="profile-avatar" aria-label="Student initials">
+                LM
+            </div>
+        </section>
+
+        <section class="profile-layout">
+            <article class="profile-card">
+                <div class="profile-card-heading">
+                    <h2>Personal information</h2>
+                    <span>Active Student</span>
+                </div>
+
+                <div class="profile-details">
+                    <div>
+                        <span>Full name</span>
+                        <strong>Linda Mpumulo</strong>
+                    </div>
+
+                    <div>
+                        <span>Student ID</span>
+                        <strong>BU2026001</strong>
+                    </div>
+
+                    <div>
+                        <span>University email</span>
+                        <strong>linda.mpumulo@blessings.edu</strong>
+                    </div>
+
+                    <div>
+                        <span>Phone number</span>
+                        <strong>(616) 555-0148</strong>
+                    </div>
+                </div>
+            </article>
+
+            <article class="profile-card">
+                <div class="profile-card-heading">
+                    <h2>Academic information</h2>
+                </div>
+
+                <div class="profile-details">
+                    <div>
+                        <span>Program</span>
+                        <strong>Master of Science in Cybersecurity</strong>
+                    </div>
+
+                    <div>
+                        <span>Academic level</span>
+                        <strong>Graduate Student</strong>
+                    </div>
+
+                    <div>
+                        <span>Current semester</span>
+                        <strong>Fall 2026</strong>
+                    </div>
+
+                    <div>
+                        <span>Academic standing</span>
+                        <strong>Good Standing</strong>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="profile-note">
+            <div>
+                <h2>Student biography</h2>
+                <p>
+                    Cybersecurity graduate student with interests in secure
+                    software development, DevSecOps and infrastructure
+                    security.
+                </p>
+            </div>
+
+            <button type="button" class="edit-button">
+                Edit Profile
+            </button>
+        </section>
+
+        <a
+            class="back-link"
+            href="{{ url_for('main.dashboard') }}"
+        >
+            ← Return to Dashboard
+        </a>
+    </main>
+</body>
+</html>

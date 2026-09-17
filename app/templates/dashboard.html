@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard | Blessings University</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="brand">Blessings University</div>
+
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.grades') }}">Grades</a>
+            <a href="{{ url_for('main.profile') }}">Profile</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="dashboard-heading">
+            <div>
+                <span class="status-badge">Student Portal</span>
+                <h1>Welcome, Linda</h1>
+                <p>
+                    View your academic results and manage your student
+                    profile from one convenient location.
+                </p>
+            </div>
+
+            <div class="student-summary">
+                <span>Student ID</span>
+                <strong>BU2026001</strong>
+                <small>Cybersecurity — Graduate Student</small>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="dashboard-card">
+                <div class="card-icon" aria-hidden="true">GR</div>
+
+                <h2>Academic Grades</h2>
+
+                <p>
+                    Review grades, course results, credit hours and your
+                    current academic standing.
+                </p>
+
+                <a
+                    class="card-link"
+                    href="{{ url_for('main.grades') }}"
+                >
+                    View Grades
+                </a>
+            </article>
+
+            <article class="dashboard-card">
+                <div class="card-icon" aria-hidden="true">PR</div>
+
+                <h2>Student Profile</h2>
+
+                <p>
+                    Review your university account details, academic program
+                    and contact information.
+                </p>
+
+                <a
+                    class="card-link"
+                    href="{{ url_for('main.profile') }}"
+                >
+                    View Profile
+                </a>
+            </article>
+        </section>
+
+        <section class="dashboard-notice">
+            <div>
+                <h2>Academic notice</h2>
+
+                <p>
+                    Fall semester course information and grades are available
+                    through the student portal.
+                </p>
+            </div>
+
+            <span>Fall 2026</span>
+        </section>
+    </main>
+</body>
+</html>
