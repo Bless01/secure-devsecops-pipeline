@@ -67,6 +67,11 @@
                 <button class="button" type="submit">
                     Sign In
                 </button>
+                {% if error %}
+    <p role="alert" style="color: #b91c1c;">
+        {{ error }}
+    </p>
+{% endif %}
             </form>
 
             <p class="login-note">

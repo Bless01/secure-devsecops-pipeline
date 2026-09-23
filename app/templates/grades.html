@@ -16,9 +16,11 @@
     <header class="navbar">
         <div class="brand">Blessings University</div>
 
-        <nav>
+        <nav aria-label="Main navigation">
             <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('main.grades') }}">Grades</a>
+            <a href="{{ url_for('main.grades') }}" aria-current="page">
+                Grades
+            </a>
             <a href="{{ url_for('main.profile') }}">Profile</a>
             <a href="{{ url_for('main.logout') }}">Logout</a>
         </nav>
@@ -28,38 +30,40 @@
         <section class="page-heading">
             <div>
                 <span class="page-label">Academic Records</span>
+
                 <h1>Student Grades</h1>
+
                 <p>
-                    Review your current course results, credit hours and
-                    academic standing.
+                    Review your course results, credit hours and
+                    semester records.
                 </p>
             </div>
 
             <div class="term-selector">
-                <span>Current semester</span>
-                <strong>Fall 2026</strong>
+                <span>Academic records</span>
+                <strong>All semesters</strong>
             </div>
         </section>
 
         <section class="grade-summary">
             <article>
                 <span>Student</span>
-                <strong>Linda Mpumulo</strong>
+                <strong>{{ student['full_name'] }}</strong>
             </article>
 
             <article>
                 <span>Student ID</span>
-                <strong>BU2026001</strong>
+                <strong>{{ student['student_number'] }}</strong>
             </article>
 
             <article>
                 <span>Program</span>
-                <strong>Cybersecurity</strong>
+                <strong>{{ student['program'] }}</strong>
             </article>
 
             <article>
-                <span>Current GPA</span>
-                <strong>3.73</strong>
+                <span>Registered credits</span>
+                <strong>{{ results | sum(attribute='credits') }}</strong>
             </article>
         </section>
 
@@ -67,48 +71,56 @@
             <div class="panel-heading">
                 <div>
                     <h2>Course results</h2>
-                    <p>Fall 2026 academic record</p>
+                    <p>Your registered courses and recorded grades.</p>
                 </div>
 
-                <span class="record-status">Good Standing</span>
+                <span class="record-status">
+                    {{ results | length }} course enrollment(s)
+                </span>
             </div>
 
             <div class="table-wrapper">
                 <table class="grades-table">
                     <thead>
                         <tr>
-                            <th>Course</th>
-                            <th>Course title</th>
-                            <th>Credits</th>
-                            <th>Score</th>
-                            <th>Grade</th>
+                            <th scope="col">Course</th>
+                            <th scope="col">Course title</th>
+                            <th scope="col">Semester</th>
+                            <th scope="col">Credits</th>
+                            <th scope="col">Score</th>
+                            <th scope="col">Grade</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        <tr>
-                            <td>CIS 693</td>
-                            <td>Cybersecurity Capstone Project</td>
-                            <td>3</td>
-                            <td>94%</td>
-                            <td><span class="grade-badge">A</span></td>
-                        </tr>
+                        {% for result in results %}
+                            <tr>
+                                <td>{{ result['course_code'] }}</td>
+                                <td>{{ result['title'] }}</td>
+                                <td>{{ result['semester'] }}</td>
+                                <td>{{ result['credits'] }}</td>
 
-                        <tr>
-                            <td>CIS 620</td>
-                            <td>Secure Software Engineering</td>
-                            <td>3</td>
-                            <td>91%</td>
-                            <td><span class="grade-badge">A-</span></td>
-                        </tr>
+                                <td>
+                                    {% if result['score'] is not none %}
+                                        {{ result['score'] }}%
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </td>
 
-                        <tr>
-                            <td>CIS 635</td>
-                            <td>Computer Network Security</td>
-                            <td>3</td>
-                            <td>88%</td>
-                            <td><span class="grade-badge">B+</span></td>
-                        </tr>
+                                <td>
+                                    <span class="grade-badge">
+                                        {{ result['letter_grade'] or 'Pending' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6">
+                                    No course records are available yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

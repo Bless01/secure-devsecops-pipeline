@@ -16,10 +16,12 @@
     <header class="navbar">
         <div class="brand">Blessings University</div>
 
-        <nav>
+        <nav aria-label="Main navigation">
             <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
             <a href="{{ url_for('main.grades') }}">Grades</a>
-            <a href="{{ url_for('main.profile') }}">Profile</a>
+            <a href="{{ url_for('main.profile') }}" aria-current="page">
+                Profile
+            </a>
             <a href="{{ url_for('main.logout') }}">Logout</a>
         </nav>
     </header>
@@ -28,7 +30,9 @@
         <section class="page-heading">
             <div>
                 <span class="page-label">Student Account</span>
+
                 <h1>Student Profile</h1>
+
                 <p>
                     Review your personal information and academic program
                     details.
@@ -36,7 +40,10 @@
             </div>
 
             <div class="profile-avatar" aria-label="Student initials">
-                LM
+                {% set names = student['full_name'].split() %}
+                {% if names %}
+                    {{ names[0][0] | upper }}{% if names | length > 1 %}{{ names[-1][0] | upper }}{% endif %}
+                {% endif %}
             </div>
         </section>
 
@@ -44,28 +51,29 @@
             <article class="profile-card">
                 <div class="profile-card-heading">
                     <h2>Personal information</h2>
-                    <span>Active Student</span>
                 </div>
 
                 <div class="profile-details">
                     <div>
                         <span>Full name</span>
-                        <strong>Linda Mpumulo</strong>
+                        <strong>{{ student['full_name'] }}</strong>
                     </div>
 
                     <div>
                         <span>Student ID</span>
-                        <strong>BU2026001</strong>
+                        <strong>{{ student['student_number'] }}</strong>
                     </div>
 
                     <div>
                         <span>University email</span>
-                        <strong>linda.mpumulo@blessings.edu</strong>
+                        <strong>{{ student['email'] }}</strong>
                     </div>
 
                     <div>
                         <span>Phone number</span>
-                        <strong>(616) 555-0148</strong>
+                        <strong>
+                            {{ student['phone'] or 'Not provided' }}
+                        </strong>
                     </div>
                 </div>
             </article>
@@ -78,22 +86,12 @@
                 <div class="profile-details">
                     <div>
                         <span>Program</span>
-                        <strong>Master of Science in Cybersecurity</strong>
+                        <strong>{{ student['program'] }}</strong>
                     </div>
 
                     <div>
                         <span>Academic level</span>
-                        <strong>Graduate Student</strong>
-                    </div>
-
-                    <div>
-                        <span>Current semester</span>
-                        <strong>Fall 2026</strong>
-                    </div>
-
-                    <div>
-                        <span>Academic standing</span>
-                        <strong>Good Standing</strong>
+                        <strong>{{ student['academic_level'] }}</strong>
                     </div>
                 </div>
             </article>
@@ -102,16 +100,11 @@
         <section class="profile-note">
             <div>
                 <h2>Student biography</h2>
+
                 <p>
-                    Cybersecurity graduate student with interests in secure
-                    software development, DevSecOps and infrastructure
-                    security.
+                    {{ student['biography'] or 'Not provided.' }}
                 </p>
             </div>
-
-            <button type="button" class="edit-button">
-                Edit Profile
-            </button>
         </section>
 
         <a

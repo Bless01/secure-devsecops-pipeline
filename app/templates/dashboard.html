@@ -16,8 +16,10 @@
     <header class="navbar">
         <div class="brand">Blessings University</div>
 
-        <nav>
-            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <nav aria-label="Main navigation">
+            <a href="{{ url_for('main.dashboard') }}" aria-current="page">
+                Dashboard
+            </a>
             <a href="{{ url_for('main.grades') }}">Grades</a>
             <a href="{{ url_for('main.profile') }}">Profile</a>
             <a href="{{ url_for('main.logout') }}">Logout</a>
@@ -28,7 +30,9 @@
         <section class="dashboard-heading">
             <div>
                 <span class="status-badge">Student Portal</span>
-                <h1>Welcome, Linda</h1>
+
+                <h1>Welcome, {{ student['full_name'].split()[0] }}</h1>
+
                 <p>
                     View your academic results and manage your student
                     profile from one convenient location.
@@ -37,8 +41,10 @@
 
             <div class="student-summary">
                 <span>Student ID</span>
-                <strong>BU2026001</strong>
-                <small>Cybersecurity — Graduate Student</small>
+                <strong>{{ student['student_number'] }}</strong>
+                <small>
+                    {{ student['program'] }} — {{ student['academic_level'] }}
+                </small>
             </div>
         </section>
 
