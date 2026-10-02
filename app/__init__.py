@@ -14,10 +14,13 @@ def create_app(test_config=None):
         SESSION_COOKIE_SAMESITE="Lax",
     )
 
-    if test_config is not None:
-        app.config.update(test_config)
-
     os.makedirs(app.instance_path, exist_ok=True)
+
+    # Load settings saved in instance/config.py.
+    if test_config is None:
+        app.config.from_pyfile("config.py", silent=True)
+    else:
+        app.config.update(test_config)
 
     from app import db
     db.init_app(app)
