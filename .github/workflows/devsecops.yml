@@ -50,3 +50,26 @@ jobs:
 
       - name: Scan Python code
         run: bandit -r app run.py seed.py
+
+
+  semgrep:
+    name: Semgrep security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install Semgrep
+        run: python -m pip install semgrep
+
+      - name: Show Semgrep version
+        run: semgrep --version
+
+      - name: Scan application code
+        run: semgrep scan --config p/python --error --metrics=off app run.py seed.py
