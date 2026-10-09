@@ -90,3 +90,54 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false"
+
+
+  trivy:
+    name: Trivy container scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v7
+
+      - name: Build student portal image
+        run: docker build -t student-portal:${{ github.sha }} .
+
+      - name: Create scan report directory
+        run: mkdir -p scan-results
+
+      - name: Generate complete vulnerability report
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: student-portal:${{ github.sha }}
+          scanners: vuln
+          format: json
+          output: scan-results/trivy.json
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: "0"
+
+      - name: Save Trivy report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-report
+          path: scan-results/trivy.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Show Trivy version
+        run: trivy --version
+
+      - name: Check for High and Critical vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: student-portal:${{ github.sha }}
+          scanners: vuln
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: "1"
+          skip-setup-trivy: true
