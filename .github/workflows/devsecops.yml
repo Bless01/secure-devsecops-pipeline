@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Build student portal image
-        run: docker build -t student-portal:${{ github.sha }} .
+        run: docker build --pull -t student-portal:${{ github.sha }} .
 
       - name: Create scan report directory
         run: mkdir -p scan-results
