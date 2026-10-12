@@ -11,8 +11,10 @@ WORKDIR /portal
 
 COPY requirements.txt .
 RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir -r requirements.txt
-    
+    && python -m pip install --no-cache-dir -r requirements.txt \
+    && python -m pip check \
+    && python -m pip uninstall -y pip
+
 RUN groupadd --gid 10001 portal \
     && useradd --uid 10001 --gid portal --create-home portal
 
