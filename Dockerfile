@@ -1,13 +1,18 @@
 FROM python:3.12-slim
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --only-upgrade liblzma5 \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /portal
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
+RUN python -m pip install --no-cache-dir --upgrade pip \
+    && python -m pip install --no-cache-dir -r requirements.txt
+    
 RUN groupadd --gid 10001 portal \
     && useradd --uid 10001 --gid portal --create-home portal
 
