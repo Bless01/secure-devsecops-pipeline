@@ -63,6 +63,7 @@ def login():
         return redirect(url_for("main.dashboard"))
 
     error = None
+    demo_password = "DEMO_ONLY_NOT_A_REAL_PASSWORD"
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
