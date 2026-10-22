@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: student-portal
+  namespace: student-portal
+spec:
+  podSelector:
+    matchLabels:
+      app: student-portal
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              access: student-portal
+      ports:
+        - protocol: TCP
+          port: 5000
+  egress: []
