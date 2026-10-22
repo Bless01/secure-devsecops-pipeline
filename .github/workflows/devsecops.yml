@@ -141,3 +141,43 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
           skip-setup-trivy: true
+
+
+  checkov:
+    name: Checkov infrastructure scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install Checkov
+        run: python -m pip install checkov==3.3.30
+
+      - name: Show Checkov version
+        run: checkov --version
+
+      - name: Create scan report directory
+        run: mkdir -p scan-results
+
+      - name: Scan Kubernetes configuration
+        run: |
+          checkov -d kubernetes \
+            --framework kubernetes \
+            --compact \
+            -o cli -o json \
+            --output-file-path console,scan-results/checkov-kubernetes.json
+
+      - name: Save Checkov report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checkov-kubernetes-report
+          path: scan-results/checkov-kubernetes.json
+          if-no-files-found: error
+          retention-days: 90
