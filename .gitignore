@@ -217,3 +217,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 /instance/
+# Terraform downloaded providers and local state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan

@@ -28,7 +28,6 @@ jobs:
       - name: Run application tests
         run: python -m pytest -v
 
-
   bandit:
     name: Bandit security scan
     runs-on: ubuntu-latest
@@ -50,7 +49,6 @@ jobs:
 
       - name: Scan Python code
         run: bandit -r app run.py seed.py
-
 
   semgrep:
     name: Semgrep security scan
@@ -74,7 +72,6 @@ jobs:
       - name: Scan application code
         run: semgrep scan --config p/python --error --metrics=off app run.py seed.py
 
-
   gitleaks:
     name: Gitleaks secret scan
     runs-on: ubuntu-latest
@@ -90,7 +87,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false"
-
 
   trivy:
     name: Trivy container scan
@@ -142,9 +138,8 @@ jobs:
           exit-code: "1"
           skip-setup-trivy: true
 
-
   checkov:
-    name: Checkov infrastructure scan
+    name: Checkov Kubernetes scan
     runs-on: ubuntu-latest
 
     steps:
@@ -173,11 +168,50 @@ jobs:
             -o cli -o json \
             --output-file-path console,scan-results/checkov-kubernetes.json
 
-      - name: Save Checkov report
+      - name: Save Kubernetes scan report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: checkov-kubernetes-report
           path: scan-results/checkov-kubernetes.json
+          if-no-files-found: error
+          retention-days: 90
+
+  checkov_terraform:
+    name: Checkov Terraform scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install Checkov
+        run: python -m pip install checkov==3.3.30
+
+      - name: Show Checkov version
+        run: checkov --version
+
+      - name: Create scan report directory
+        run: mkdir -p scan-results
+
+      - name: Scan Terraform configuration
+        run: |
+          checkov -d terraform \
+            --framework terraform \
+            --compact \
+            -o cli -o json \
+            --output-file-path console,scan-results/checkov-terraform.json
+
+      - name: Save Terraform scan report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checkov-terraform-report
+          path: scan-results/checkov-terraform.json
           if-no-files-found: error
           retention-days: 90
