@@ -138,6 +138,18 @@ jobs:
           exit-code: "1"
           skip-setup-trivy: true
 
+      - name: Export scanned image
+        run: docker save student-portal:${{ github.sha }} -o /tmp/student-portal.tar
+
+      - name: Save scanned image for deployment
+        uses: actions/upload-artifact@v7
+        with:
+          name: student-portal-image
+          path: /tmp/student-portal.tar
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
   checkov:
     name: Checkov Kubernetes scan
     runs-on: ubuntu-latest
@@ -215,3 +227,172 @@ jobs:
           path: scan-results/checkov-terraform.json
           if-no-files-found: error
           retention-days: 90
+
+  kubernetes_deploy:
+    name: Kubernetes deployment verification
+    needs:
+      - tests
+      - bandit
+      - semgrep
+      - gitleaks
+      - trivy
+      - checkov
+      - checkov_terraform
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      IMAGE: student-portal:${{ github.sha }}
+      KUBE_CONTEXT: kind-portal-ci
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v7
+
+      - name: Download scanned image
+        uses: actions/download-artifact@v8
+        with:
+          name: student-portal-image
+          path: /tmp/portal-image
+
+      - name: Load scanned image into Docker
+        run: docker load -i /tmp/portal-image/student-portal.tar
+
+      - name: Create temporary Kubernetes cluster
+        uses: helm/kind-action@v1
+        with:
+          version: v0.33.0
+          node_image: kindest/node:v1.37.0
+          kubectl_version: v1.37.0
+          cluster_name: portal-ci
+          wait: 120s
+
+      - name: Load image into Kubernetes
+        run: kind load docker-image "$IMAGE" --name portal-ci
+
+      - name: Create namespace and storage
+        run: |
+          kubectl --context "$KUBE_CONTEXT" apply \
+            -f kubernetes/namespace.yaml
+
+          kubectl --context "$KUBE_CONTEXT" apply \
+            -f kubernetes/storage.yaml
+
+      - name: Create temporary application settings
+        shell: bash
+        run: |
+          umask 077
+          CONFIG_FILE="$RUNNER_TEMP/portal-ci-config.py"
+          trap 'rm -f "$CONFIG_FILE"' EXIT
+
+          python3 -c 'import secrets; print("SECRET_KEY = " + repr(secrets.token_hex(32)))' \
+            > "$CONFIG_FILE"
+
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal create secret generic student-portal-secrets \
+            --from-file=config.py="$CONFIG_FILE"
+
+      - name: Prepare deployment for the local image
+        run: |
+          kubectl patch --local \
+            -f kubernetes/deployment.yaml \
+            --type=strategic \
+            -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"student-portal\",\"image\":\"$IMAGE\",\"imagePullPolicy\":\"Never\"}]}}}}" \
+            -o yaml > "$RUNNER_TEMP/portal-ci-deployment.yaml"
+
+      - name: Deploy student portal
+        run: |
+          kubectl --context "$KUBE_CONTEXT" apply \
+            -f "$RUNNER_TEMP/portal-ci-deployment.yaml"
+
+          kubectl --context "$KUBE_CONTEXT" apply \
+            -f kubernetes/service.yaml \
+            -f kubernetes/network-policy.yaml
+
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal rollout status deployment/student-portal \
+            --timeout=180s
+
+      - name: Initialize the temporary database
+        run: |
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal exec deployment/student-portal -- \
+            python -m flask --app app init-db
+
+      - name: Verify database tables
+        run: |
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal exec -i deployment/student-portal -- python - <<'PY'
+          from app import create_app
+          from app.db import get_db
+
+          app = create_app()
+          with app.app_context():
+              db = get_db()
+              result = db.execute("PRAGMA integrity_check").fetchone()[0]
+              assert result == "ok", result
+
+              tables = {
+                  row[0] for row in db.execute(
+                      "SELECT name FROM sqlite_master WHERE type = 'table'"
+                  )
+              }
+              required = {"students", "courses", "enrollments", "grades"}
+              assert required <= tables, f"Missing tables: {required - tables}"
+              print("Database integrity and required tables verified.")
+          PY
+
+      - name: Check portal through the Kubernetes Service
+        run: |
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal run portal-http-check \
+            --image="$IMAGE" \
+            --image-pull-policy=Never \
+            --labels=access=student-portal \
+            --restart=Never --rm -i --command -- python - <<'PY'
+          import json
+          import time
+          import urllib.request
+
+          base = "http://student-portal"
+
+          for attempt in range(12):
+              try:
+                  with urllib.request.urlopen(base + "/health", timeout=5) as response:
+                      assert response.status == 200
+                      assert json.load(response) == {"status": "healthy"}
+
+                  for path in ("/", "/login"):
+                      with urllib.request.urlopen(base + path, timeout=5) as response:
+                          assert response.status == 200
+
+                  print("Health, homepage, and login page checks passed.")
+                  break
+              except Exception:
+                  if attempt == 11:
+                      raise
+                  time.sleep(5)
+          PY
+
+      - name: Show deployment status
+        run: |
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal get pods,services,pvc
+
+      - name: Show troubleshooting information
+        if: failure()
+        run: |
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal get pods,pvc || true
+
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal get events \
+            --sort-by=.metadata.creationTimestamp || true
+
+          kubectl --context "$KUBE_CONTEXT" \
+            -n student-portal logs deployment/student-portal \
+            --tail=100 || true
+
+      - name: Remove temporary cluster
+        if: always()
+        run: kind delete cluster --name portal-ci
