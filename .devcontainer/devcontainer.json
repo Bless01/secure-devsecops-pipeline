@@ -1,0 +1,12 @@
+{
+  "name": "Student Portal",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "postStartCommand": "bash .devcontainer/start-portal.sh",
+  "forwardPorts": [5002],
+  "portsAttributes": {
+    "5002": {
+      "label": "Student Portal",
+      "onAutoForward": "notify"
+    }
+  }
+}
