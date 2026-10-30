@@ -1,19 +1,12 @@
-# ============================================================
-# Second AWS region for backup copies
-# ============================================================
-
+# Second region for backup copies
 provider "aws" {
   alias  = "replica"
   region = "us-west-2"
 }
 
-# ============================================================
 # Access logs for the original backup bucket
-# ============================================================
-
 resource "aws_s3_bucket" "portal_access_logs" {
   # checkov:skip=CKV_AWS_145:S3 server access log destination uses SSE-S3 as documented by AWS.
-  # checkov:skip=CKV_AWS_144:Prototype replicates backup data across regions; access logs remain regional. Review before deployment.
 
   bucket_prefix = "blessings-portal-access-logs-"
 
@@ -106,10 +99,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "portal_access_logs" {
   }
 }
 
-# ============================================================
 # Backup replica in us-west-2
-# ============================================================
-
 resource "aws_s3_bucket" "portal_replica" {
   provider      = aws.replica
   bucket_prefix = "blessings-portal-replica-"
@@ -193,10 +183,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "portal_replica" {
   }
 }
 
-# ============================================================
 # Permissions for encrypted backup replication
-# ============================================================
-
 resource "aws_iam_role" "portal_replication" {
   name_prefix = "portal-backup-replication-"
 
@@ -276,10 +263,7 @@ resource "aws_iam_role_policy" "portal_replication" {
   })
 }
 
-# ============================================================
 # Replicate new backups to the second region
-# ============================================================
-
 resource "aws_s3_bucket_replication_configuration" "portal_backups" {
   bucket = aws_s3_bucket.portal_backups.id
   role   = aws_iam_role.portal_replication.arn
@@ -320,13 +304,9 @@ resource "aws_s3_bucket_replication_configuration" "portal_backups" {
   ]
 }
 
-# ============================================================
 # Access logs for the replica bucket in us-west-2
-# ============================================================
-
 resource "aws_s3_bucket" "portal_replica_logs" {
   # checkov:skip=CKV_AWS_145:S3 server access log destination uses SSE-S3 as documented by AWS.
-  # checkov:skip=CKV_AWS_144:Prototype replicates backup data across regions; access logs remain regional. Review before deployment.
 
   provider      = aws.replica
   bucket_prefix = "blessings-portal-replica-logs-"
