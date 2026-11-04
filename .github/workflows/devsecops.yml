@@ -126,6 +126,32 @@ jobs:
       - name: Show Trivy version
         run: trivy --version
 
+      - name: Generate Dockerfile configuration report
+        run: |
+          trivy config \
+            --format json \
+            --output scan-results/trivy-dockerfile.json \
+            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+            --exit-code 0 \
+            Dockerfile
+
+      - name: Save Dockerfile configuration report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-dockerfile-report
+          path: scan-results/trivy-dockerfile.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Check Dockerfile for High and Critical misconfigurations
+        run: |
+          trivy config \
+            --format table \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            Dockerfile
+
       - name: Check for fixable High and Critical vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
         with:
