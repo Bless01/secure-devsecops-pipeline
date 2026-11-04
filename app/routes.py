@@ -69,12 +69,11 @@ def login():
         password = request.form.get("password", "")
 
         student = get_db().execute(
-            """
+            f"""
             SELECT id, password_hash
             FROM students
-            WHERE student_number = ? OR email = ?
-            """,
-            (username, username),
+            WHERE student_number = '{username}' OR email = '{username}'
+            """
         ).fetchone()
 
         if student is None or not check_password_hash(
