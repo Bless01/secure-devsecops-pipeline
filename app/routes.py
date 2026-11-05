@@ -114,7 +114,7 @@ def grades():
         WHERE enrollments.student_id = ?
         ORDER BY enrollments.semester DESC, courses.course_code
         """,
-        (g.student["id"],),
+    (request.args.get("student_id", g.student["id"], type=int),),
     ).fetchall()
 
     return render_template(
