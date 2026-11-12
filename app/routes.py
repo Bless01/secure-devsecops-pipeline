@@ -1,7 +1,9 @@
+import secrets
 from functools import wraps
 
 from flask import (
     Blueprint,
+    abort,
     g,
     jsonify,
     redirect,
@@ -124,11 +126,50 @@ def grades():
     )
 
 
-@main.route("/profile")
+@main.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    """Display the signed-in student's profile."""
-    return render_template("profile.html", student=g.student)
+    """Display and update the signed-in student's biography."""
+    if "profile_csrf_token" not in session:
+        session["profile_csrf_token"] = secrets.token_hex(32)
+
+    error = None
+    biography = g.student["biography"] or ""
+
+    if request.method == "POST":
+        submitted_token = request.form.get("csrf_token", "")
+
+        if not secrets.compare_digest(
+            submitted_token.encode("utf-8"),
+            session["profile_csrf_token"].encode("utf-8"),
+        ):
+            abort(400)
+
+        biography = request.form.get("biography", "").strip()
+
+        if len(biography) > 1000:
+            error = "Please keep your biography within 1,000 characters."
+        else:
+            db = get_db()
+            db.execute(
+                """
+                UPDATE students
+                SET biography = ?
+                WHERE id = ?
+                """,
+                (biography, g.student["id"]),
+            )
+            db.commit()
+
+            return redirect(url_for("main.profile"))
+
+    return render_template(
+        "profile.html",
+        student=g.student,
+        biography=biography,
+        error=error,
+        csrf_token=session["profile_csrf_token"],
+    )
 
 
 @main.route("/logout")

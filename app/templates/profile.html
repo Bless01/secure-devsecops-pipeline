@@ -10,6 +10,69 @@
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
     >
+
+    <style>
+        .biography-text {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .biography-form {
+            margin-top: 24px;
+        }
+
+        .biography-form label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .biography-form textarea {
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 130px;
+            padding: 14px;
+            border: 1px solid #b9c7dc;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #172b4d;
+            font: inherit;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .biography-form textarea:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .biography-help {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .biography-form button {
+            margin-top: 12px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: #ffffff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .biography-form button:hover {
+            background: #1d4ed8;
+        }
+
+        .biography-error {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+    </style>
 </head>
 
 <body>
@@ -101,9 +164,42 @@
             <div>
                 <h2>Student biography</h2>
 
-                <p>
-                    {{ student['biography'] or 'Not provided.' }}
-                </p>
+                <p class="biography-text">{{ student['biography'] or 'Not provided.' }}</p>
+
+                {% if error %}
+                    <p class="biography-error" role="alert">
+                        {{ error }}
+                    </p>
+                {% endif %}
+
+                <form
+                    class="biography-form"
+                    method="post"
+                    action="{{ url_for('main.profile') }}"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token }}"
+                    >
+
+                    <label for="biography">Edit your biography</label>
+
+                    <textarea
+                        id="biography"
+                        name="biography"
+                        rows="4"
+                        maxlength="1000"
+                        aria-describedby="biography-help"
+                    >{{ biography }}</textarea>
+
+                    <p id="biography-help" class="biography-help">
+                        Write a short introduction about yourself.
+                        Maximum 1,000 characters.
+                    </p>
+
+                    <button type="submit">Save biography</button>
+                </form>
             </div>
         </section>
 
