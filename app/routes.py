@@ -1,4 +1,5 @@
 import secrets
+import time
 from functools import wraps
 
 from flask import (
@@ -18,26 +19,43 @@ from app.db import get_db
 
 main = Blueprint("main", __name__)
 
+SESSION_IDLE_TIMEOUT = 15 * 60
+
 
 @main.before_app_request
 def load_logged_in_student():
-    """Load the student associated with the current session."""
-    student_id = session.get("student_id")
+    """Load the student and expire inactive sessions."""
     g.student = None
+    student_id = session.get("student_id")
 
-    if student_id is not None:
-        g.student = get_db().execute(
-            """
-            SELECT id, student_number, full_name, email,
-                   program, academic_level, phone, biography
-            FROM students
-            WHERE id = ?
-            """,
-            (student_id,),
-        ).fetchone()
+    if student_id is None:
+        return
 
-        if g.student is None:
-            session.clear()
+    now = time.time()
+    last_activity = session.get("last_activity")
+
+    if (
+        last_activity is None
+        or now - last_activity >= SESSION_IDLE_TIMEOUT
+    ):
+        session.clear()
+        return
+
+    g.student = get_db().execute(
+        """
+        SELECT id, student_number, full_name, email,
+               program, academic_level, phone, biography
+        FROM students
+        WHERE id = ?
+        """,
+        (student_id,),
+    ).fetchone()
+
+    if g.student is None:
+        session.clear()
+        return
+
+    session["last_activity"] = now
 
 
 def login_required(view):
@@ -86,6 +104,8 @@ def login():
         else:
             session.clear()
             session["student_id"] = student["id"]
+            session["last_activity"] = time.time()
+
             return redirect(url_for("main.dashboard"))
 
     return render_template("login.html", error=error)
@@ -134,7 +154,7 @@ def profile():
         session["profile_csrf_token"] = secrets.token_hex(32)
 
     error = None
-    biography = g.student["biography"] or ""
+    biography = ""
 
     if request.method == "POST":
         submitted_token = request.form.get("csrf_token", "")
