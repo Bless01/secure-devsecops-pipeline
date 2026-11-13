@@ -192,6 +192,44 @@ def profile():
     )
 
 
+@main.route("/calculator", methods=["GET", "POST"])
+@login_required
+def calculator():
+    """Calculate an average for the controlled unsafe-eval demo."""
+    if "calculator_csrf_token" not in session:
+        session["calculator_csrf_token"] = secrets.token_hex(32)
+
+    expression = ""
+    result = None
+
+    if request.method == "POST":
+        submitted_token = request.form.get("csrf_token", "")
+
+        if not secrets.compare_digest(
+            submitted_token.encode("utf-8"),
+            session["calculator_csrf_token"].encode("utf-8"),
+        ):
+            abort(400)
+
+        expression = request.form.get("expression", "").strip()
+
+        if not expression or len(expression) > 200:
+            result = "Enter an expression of up to 200 characters."
+        else:
+            try:
+                # VULN-06: evaluates user input as Python code.
+                result = str(eval(expression))
+            except Exception:
+                result = "Unable to calculate that expression."
+
+    return render_template(
+        "calculator.html",
+        expression=expression,
+        result=result,
+        csrf_token=session["calculator_csrf_token"],
+    )
+
+
 @main.route("/logout")
 def logout():
     """Clear the student's session and return home."""
