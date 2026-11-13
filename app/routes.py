@@ -1,5 +1,5 @@
 import secrets
-import subprocess
+import socket
 import time
 from functools import wraps
 
@@ -196,7 +196,7 @@ def profile():
 @main.route("/diagnostics", methods=["GET", "POST"])
 @login_required
 def diagnostics():
-    """Resolve a hostname for the controlled command-injection demo."""
+    """Resolve a hostname directly in Python without a shell."""
     if "diagnostics_csrf_token" not in session:
         session["diagnostics_csrf_token"] = secrets.token_hex(32)
 
@@ -216,21 +216,26 @@ def diagnostics():
 
         if not hostname or len(hostname) > 200:
             output = "Enter a hostname of up to 200 characters."
+        elif any(
+            character not in
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "0123456789.-"
+            for character in hostname
+        ):
+            output = "Invalid hostname or no address found."
         else:
             try:
-                # VULN-05: user input is interpreted by the shell.
-                result = subprocess.run(
-                    f"getent hosts {hostname}",
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
+                addresses = socket.getaddrinfo(
+                    hostname,
+                    None,
+                    type=socket.SOCK_STREAM,
                 )
-                output = (
-                    result.stdout + result.stderr
-                ).strip() or "No results returned."
-            except subprocess.TimeoutExpired:
-                output = "The diagnostic timed out."
+                output = "\n".join(
+                    sorted({address[4][0] for address in addresses})
+                )
+            except (socket.gaierror, UnicodeError):
+                output = "Invalid hostname or no address found."
 
     return render_template(
         "diagnostics.html",
