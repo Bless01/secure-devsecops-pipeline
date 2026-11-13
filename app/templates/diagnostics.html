@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Diagnostic | Blessings University</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="brand">Blessings University</div>
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="portal-container">
+        <section class="page-heading">
+            <div>
+                <span class="page-label">Student Support</span>
+                <h1>Network diagnostic</h1>
+                <p>Look up a hostname to check its network address.</p>
+            </div>
+        </section>
+
+        <section class="profile-card">
+            <form method="post">
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token }}">
+
+                <label for="hostname">Hostname</label>
+                <input id="hostname" name="hostname"
+                       value="{{ hostname }}"
+                       placeholder="localhost"
+                       maxlength="200" required
+                       style="display:block;width:100%;box-sizing:border-box;
+                              padding:14px;margin:12px 0;">
+
+                <button type="submit"
+                        style="padding:12px 24px;background:#2563eb;
+                               color:white;border:0;border-radius:8px;">
+                    Run diagnostic
+                </button>
+            </form>
+
+            {% if output is not none %}
+                <h2>Diagnostic result</h2>
+                <pre style="white-space:pre-wrap;overflow-wrap:anywhere;
+                            background:#eef2f7;padding:20px;">{{ output }}</pre>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import secrets
+import subprocess
 import time
 from functools import wraps
 
@@ -189,6 +190,53 @@ def profile():
         biography=biography,
         error=error,
         csrf_token=session["profile_csrf_token"],
+    )
+
+
+@main.route("/diagnostics", methods=["GET", "POST"])
+@login_required
+def diagnostics():
+    """Resolve a hostname for the controlled command-injection demo."""
+    if "diagnostics_csrf_token" not in session:
+        session["diagnostics_csrf_token"] = secrets.token_hex(32)
+
+    hostname = ""
+    output = None
+
+    if request.method == "POST":
+        submitted_token = request.form.get("csrf_token", "")
+
+        if not secrets.compare_digest(
+            submitted_token.encode("utf-8"),
+            session["diagnostics_csrf_token"].encode("utf-8"),
+        ):
+            abort(400)
+
+        hostname = request.form.get("hostname", "").strip()
+
+        if not hostname or len(hostname) > 200:
+            output = "Enter a hostname of up to 200 characters."
+        else:
+            try:
+                # VULN-05: user input is interpreted by the shell.
+                result = subprocess.run(
+                    f"getent hosts {hostname}",
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                output = (
+                    result.stdout + result.stderr
+                ).strip() or "No results returned."
+            except subprocess.TimeoutExpired:
+                output = "The diagnostic timed out."
+
+    return render_template(
+        "diagnostics.html",
+        hostname=hostname,
+        output=output,
+        csrf_token=session["diagnostics_csrf_token"],
     )
 
 
