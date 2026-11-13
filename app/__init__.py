@@ -21,6 +21,7 @@ def create_app(test_config=None):
         app.config.from_pyfile("config.py", silent=True)
     else:
         app.config.update(test_config)
+    app.config["SECRET_KEY"] = "blessings-university-demo-secret"
 
     from app import db
     db.init_app(app)
