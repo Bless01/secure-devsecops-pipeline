@@ -13,7 +13,7 @@ from flask import (
     session,
     url_for,
 )
-import hashlib
+from werkzeug.security import check_password_hash
 
 from app.db import get_db
 
@@ -97,9 +97,8 @@ def login():
             (username, username),
         ).fetchone()
 
-        if student is None or not secrets.compare_digest(
-            student["password_hash"],
-            hashlib.md5(password.encode("utf-8")).hexdigest(),
+        if student is None or not check_password_hash(
+            student["password_hash"], password
         ):
             error = "Invalid student ID, email, or password."
         else:
