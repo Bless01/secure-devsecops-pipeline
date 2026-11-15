@@ -1,3 +1,6 @@
+import ast
+import math
+import operator
 import secrets
 import time
 from functools import wraps
@@ -68,6 +71,53 @@ def login_required(view):
         return view(*args, **kwargs)
 
     return wrapped_view
+
+
+def calculate_arithmetic(expression):
+    """Calculate arithmetic without executing user-supplied Python code."""
+    if not expression or len(expression) > 200:
+        raise ValueError("Enter an expression of up to 200 characters.")
+
+    tree = ast.parse(expression, mode="eval")
+
+    if sum(1 for _ in ast.walk(tree)) > 64:
+        raise ValueError("Expression is too complex.")
+
+    operations = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+    }
+
+    def evaluate(node):
+        if isinstance(node, ast.Constant):
+            if type(node.value) not in (int, float):
+                raise ValueError("Only numbers are allowed.")
+
+            value = node.value
+
+        elif isinstance(node, ast.BinOp) and type(node.op) in operations:
+            value = operations[type(node.op)](
+                evaluate(node.left),
+                evaluate(node.right),
+            )
+
+        elif isinstance(node, ast.UnaryOp) and isinstance(
+            node.op, (ast.UAdd, ast.USub)
+        ):
+            operand = evaluate(node.operand)
+            value = -operand if isinstance(node.op, ast.USub) else operand
+
+        else:
+            raise ValueError("Only arithmetic is allowed.")
+
+        if not math.isfinite(value) or abs(value) > 1_000_000_000_000:
+            raise ValueError("Number is outside the allowed range.")
+
+        return value
+
+    return evaluate(tree.body)
 
 
 @main.route("/")
@@ -195,7 +245,7 @@ def profile():
 @main.route("/calculator", methods=["GET", "POST"])
 @login_required
 def calculator():
-    """Calculate an average for the controlled unsafe-eval demo."""
+    """Calculate arithmetic using a restricted expression parser."""
     if "calculator_csrf_token" not in session:
         session["calculator_csrf_token"] = secrets.token_hex(32)
 
@@ -217,9 +267,14 @@ def calculator():
             result = "Enter an expression of up to 200 characters."
         else:
             try:
-                # VULN-06: evaluates user input as Python code.
-                result = str(eval(expression))
-            except Exception:
+                result = str(calculate_arithmetic(expression))
+            except (
+                SyntaxError,
+                ValueError,
+                TypeError,
+                ArithmeticError,
+                RecursionError,
+            ):
                 result = "Unable to calculate that expression."
 
     return render_template(
@@ -239,5 +294,5 @@ def logout():
 
 @main.route("/health")
 def health():
-    """Return the application status."""
-    return jsonify({"status": "healthy"}), 200
+    """Report application health."""
+    return jsonify(status="healthy"), 200
