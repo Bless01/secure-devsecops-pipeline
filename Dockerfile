@@ -24,7 +24,7 @@ COPY run.py seed.py ./
 RUN mkdir -p /portal/instance \
     && chown portal:portal /portal/instance
 
-USER portal
+USER root
 
 EXPOSE 5000
 
