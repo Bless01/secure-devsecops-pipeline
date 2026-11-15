@@ -1,6 +1,6 @@
 from getpass import getpass
 
-from werkzeug.security import generate_password_hash
+import hashlib
 
 from app import create_app
 from app.db import get_db
@@ -80,7 +80,7 @@ def seed_database():
                             number,
                             name,
                             email,
-                            generate_password_hash(password),
+                            hashlib.md5(password.encode("utf-8")).hexdigest(),
                             "Master of Science in Cybersecurity",
                             "Graduate Student",
                         ),
