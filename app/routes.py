@@ -194,9 +194,10 @@ def profile():
 
 @main.route("/logout")
 def logout():
-    """Clear the student's session and return home."""
+    """Clear the student's session and return to login."""
     session.clear()
-    return redirect(url_for("main.home"))
+    g.student = None
+    return redirect(url_for("main.login"))
 
 
 @main.route("/health")

@@ -311,7 +311,7 @@ def test_logout_ends_session(client, login):
     response = client.get("/logout")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == "/"
+    assert response.headers["Location"] == "/login"
 
     with client.session_transaction() as session:
         assert "student_id" not in session
