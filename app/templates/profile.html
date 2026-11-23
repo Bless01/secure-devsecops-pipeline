@@ -164,7 +164,7 @@
             <div>
                 <h2>Student biography</h2>
 
-                <p class="biography-text">{{ (student['biography'] or 'Not provided.') |safe}}</p>
+                <p class="biography-text">{{ (student['biography'] or 'Not provided.')}}</p>
 
                 {% if error %}
                     <p class="biography-error" role="alert">
